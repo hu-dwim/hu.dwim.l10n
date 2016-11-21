@@ -1,7 +1,7 @@
 ;;; -*- Mode: LISP; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;; See the file LICENCE for licence information.
 
-(cl:defpackage #:cl-l10n
+(cl:defpackage #:hu.dwim.l10n
   (:use
    :common-lisp
    :metabang-bind
@@ -65,12 +65,12 @@
    #:hungarian-plural-of
    ))
 
-(in-package :cl-l10n)
+(in-package :hu.dwim.l10n)
 
-(defpackage :cl-l10n.lang
-  (:use :common-lisp :cl-l10n)
+(defpackage :hu.dwim.l10n/lang
+  (:use :common-lisp :hu.dwim.l10n)
 
-  (:shadowing-import-from :cl-l10n
+  (:shadowing-import-from :hu.dwim.l10n
    #:defresources)
 
   (:export
@@ -107,7 +107,8 @@
    #:localize-number-symbol
    ))
 
-(defpackage :cl-l10n.ldml
+(defpackage :hu.dwim.l10n/ldml
+  (:documentation "This package is used for the 'Unicode Locale Data Markup Language' (LDML), a part of the CLDR.")
   (:nicknames :ldml)
   (:use)
   (:export
@@ -215,7 +216,7 @@
   (map nil (lambda (a b)
              (unless (eql a (char-code b))
                (cerror "try it anyway"
-                       "Your lisp seems to be reading .lisp files in something else then UTF-8. The source files of cl-l10n contain literal strings with unicode characters and failing to properly read them in UTF-8 will cause problems.")
+                       "Your lisp seems to be reading .lisp files in something else then UTF-8. The source files of hu.dwim.l10n contain literal strings with unicode characters and failing to properly read them in UTF-8 will cause problems.")
                (return-from check-lisp-source-file-encoding)))
        #(233 225 250 337 243 246 369 237)
        "éáúőóöűí"))

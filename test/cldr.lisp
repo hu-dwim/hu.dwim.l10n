@@ -1,7 +1,7 @@
 ;;; -*- Mode: LISP; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;; See the file LICENCE for licence information.
 
-(in-package :cl-l10n/test)
+(in-package :hu.dwim.l10n/test)
 
 (defsuite* (test/cldr :in test))
 
@@ -157,7 +157,7 @@ with CLDR 1.6.1
                                  (collect `(with-locale ,locale
                                              (one-pass)))))))))
 
-(def-symbol-test test/cldr/symbols/number-symbols (cl-l10n.lang:number-symbol)
+(def-symbol-test test/cldr/symbols/number-symbols (hu.dwim.l10n/lang:number-symbol)
   ("en_US_POSIX"
 
    (per-mille "0/00")
@@ -180,7 +180,7 @@ with CLDR 1.6.1
 
 (defsuite* (test/cldr/currencies :in test/cldr))
 
-(def-symbol-test test/currencies (cl-l10n.lang:currency-name cl-l10n.lang:currency-symbol)
+(def-symbol-test test/currencies (hu.dwim.l10n/lang:currency-name hu.dwim.l10n/lang:currency-symbol)
   (("en_US_POSIX" "en_US" "en_GB" "en")
 
    (usd   "US Dollar"              "$")
@@ -199,7 +199,7 @@ with CLDR 1.6.1
 
 (defsuite* (test/cldr/languages :in test/cldr))
 
-(def-symbol-test test/languages/language (cl-l10n.lang:language)
+(def-symbol-test test/languages/language (hu.dwim.l10n/lang:language)
   (("en_US_POSIX" "en_US" "en_GB" "en")
 
    (aa        "Afar")
@@ -219,7 +219,7 @@ with CLDR 1.6.1
    ("zh_Hant" "kínai (hagyományos)")
    (zh        "kínai")))
 
-(def-symbol-test test/languages/script (cl-l10n.lang:script)
+(def-symbol-test test/languages/script (hu.dwim.l10n/lang:script)
   (("en_US_POSIX" "en_US" "en_GB" "en")
 
    (Arab      "Perso-Arabic")
@@ -238,7 +238,7 @@ with CLDR 1.6.1
    ("Ital"    "Régi olasz")))
 
 
-(def-symbol-test test/languages/territory (cl-l10n.lang:territory)
+(def-symbol-test test/languages/territory (hu.dwim.l10n/lang:territory)
   (("en_US_POSIX" "en_US" "en_GB" "en")
 
    (011       "Western Africa")
@@ -255,7 +255,7 @@ with CLDR 1.6.1
    (ZZ        "Ismeretlen vagy érvénytelen körzet")
    ("HU"      "Magyarország")))
 
-(def-symbol-test test/languages/variant (cl-l10n.lang:variant)
+(def-symbol-test test/languages/variant (hu.dwim.l10n/lang:variant)
   (("en_US_POSIX" "en_US" "en_GB" "en")
 
    (1901      "Traditional German orthography")
@@ -285,86 +285,86 @@ with CLDR 1.6.1
 ;;; Format number tests
 
 (deftest number.1
-    (format nil "~v:/cl-l10n:format-number/" "en_ZA" 1000)
+    (format nil "~v:/hu.dwim.l10n:format-number/" "en_ZA" 1000)
   "1,000")
 
 (deftest number.2
-    (format nil "~v:@/cl-l10n:format-number/" "en_ZA" 1000)
+    (format nil "~v:@/hu.dwim.l10n:format-number/" "en_ZA" 1000)
   "1000")
 
 (deftest number.3
-    (format nil "~v/cl-l10n:format-number/" "en_ZA" 1000)
+    (format nil "~v/hu.dwim.l10n:format-number/" "en_ZA" 1000)
   "1,000.00")
 
 (deftest number.4
-    (format nil "~v/cl-l10n:format-number/" "sv_SE" 1000)
+    (format nil "~v/hu.dwim.l10n:format-number/" "sv_SE" 1000)
   "1 000,00")
 
 (deftest number.5
-    (format nil "~v:/cl-l10n:format-number/" "sv_SE" 1000)
+    (format nil "~v:/hu.dwim.l10n:format-number/" "sv_SE" 1000)
   "1 000")
 
 (deftest number.6
-    (format nil "~v:/cl-l10n:format-number/" "sv_SE" 1/2)
+    (format nil "~v:/hu.dwim.l10n:format-number/" "sv_SE" 1/2)
   "0,50")
 
 (deftest number.7
-    (format nil "~v:/cl-l10n:format-number/" "en_GB" 100.12312d0)
+    (format nil "~v:/hu.dwim.l10n:format-number/" "en_GB" 100.12312d0)
   "100.12")
 
 ;;; Money tests
 
 (deftest money.1
-    (format nil "~v:/cl-l10n:format-money/" "en_ZA" 1000)
+    (format nil "~v:/hu.dwim.l10n:format-money/" "en_ZA" 1000)
   "ZAR 1,000.00")
 
 (deftest money.2
-    (format nil "~v@/cl-l10n:format-money/" "en_ZA" 1000)
+    (format nil "~v@/hu.dwim.l10n:format-money/" "en_ZA" 1000)
   "R1000.00")
 
 (deftest money.3
-    (format nil "~v:@/cl-l10n:format-money/" "en_ZA" 1000)
+    (format nil "~v:@/hu.dwim.l10n:format-money/" "en_ZA" 1000)
   "ZAR 1000.00")
 
 (deftest money.4
-    (format nil "~v:/cl-l10n:format-money/" "sv_SE" 1000)
+    (format nil "~v:/hu.dwim.l10n:format-money/" "sv_SE" 1000)
   "1 000,00 SEK")
 
 (deftest money.5
-    (format nil "~v@/cl-l10n:format-money/" "sv_SE" 1000)
+    (format nil "~v@/hu.dwim.l10n:format-money/" "sv_SE" 1000)
   "1000,00 kr")
 
 (deftest money.6
-    (format nil "~v:@/cl-l10n:format-money/" "sv_SE" 1000)
+    (format nil "~v:@/hu.dwim.l10n:format-money/" "sv_SE" 1000)
   "1000,00 SEK")
 
 ;;; Time tests
 
 (deftest time.1
-    (format nil "~v,,v:@/cl-l10n:format-time/" "en_ZA" 0 3091103120)
+    (format nil "~v,,v:@/hu.dwim.l10n:format-time/" "en_ZA" 0 3091103120)
   "Sun 14 Dec 1997 15:45:20 +0000")
 
 ;;; FIXME
 (deftest time.2
-    (format nil "~v,,v:@/cl-l10n:format-time/" "sv_SE" 0 3091103120)
+    (format nil "~v,,v:@/hu.dwim.l10n:format-time/" "sv_SE" 0 3091103120)
   #.(format nil "s~Cn 14 dec 1997 15.45.20"
             #+(or sb-unicode clisp) #\LATIN_SMALL_LETTER_O_WITH_DIAERESIS
             #-(or sb-unicode clisp) (code-char #xF6)))
 
 (deftest time.3
-    (format nil "~v,,v/cl-l10n:format-time/" "en_US" 0 3091103120)
+    (format nil "~v,,v/hu.dwim.l10n:format-time/" "en_US" 0 3091103120)
   "03:45:20 ")
 
 (deftest time.4
-    (format nil "~v:/cl-l10n:format-time/" "en_US" 3091103120)
+    (format nil "~v:/hu.dwim.l10n:format-time/" "en_US" 3091103120)
   "12/14/1997")
 
 (deftest time.5
-    (format nil "~v,,v@/cl-l10n:format-time/" "en_US" 0 3091103120)
+    (format nil "~v,,v@/hu.dwim.l10n:format-time/" "en_US" 0 3091103120)
   "15:45:20 ")
 
 (deftest time.6
-    (format nil "~v,,v@/cl-l10n:format-time/" "sv_SE" 0 3091103120)
+    (format nil "~v,,v@/hu.dwim.l10n:format-time/" "sv_SE" 0 3091103120)
   "15.45.20")
 
 (defmacro def-time-directive-test (name directive result)

@@ -1,6 +1,6 @@
 ;;; -*- Mode: LISP; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;; See the file LICENCE for licence information.
-(in-package #:cl-l10n)
+(in-package #:hu.dwim.l10n)
 
 (defvar *locale*)
 
@@ -13,7 +13,7 @@
       "The root locale found in cldr/main/root.xml. All locales inherit from this, it contains the definitions that are shared for most locales.")
 
 (defun project-relative-pathname (file)
-  (asdf:system-relative-pathname :cl-l10n file))
+  (asdf:system-relative-pathname :hu.dwim.l10n file))
 
 (defun cldr-relative-pathname (file)
   (asdf:system-relative-pathname :cl-l10n-cldr file))

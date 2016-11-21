@@ -1,7 +1,7 @@
 ;;; -*- Mode: LISP; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;; See the file LICENCE for licence information.
 
-(in-package :cl-l10n)
+(in-package :hu.dwim.l10n)
 
 ;;; see http://unicode.org/cldr/
 
@@ -25,13 +25,13 @@
   ((source-xml-file :initarg :source-xml-file :accessor source-xml-file-of)))
 
 (defun make-cldr-parser ()
-  (make-instance 'cldr-parser :default-package "CL-L10N.LDML"))
+  (make-instance 'cldr-parser :default-package (string '#:hu.dwim.l10n/ldml)))
 
 (defun cldr-pathname-for (locale-name)
   (merge-pathnames (concatenate 'string locale-name ".xml") *cldr-root-directory*))
 
 (defun parse-cldr-file (name)
-  (bind ((*package* (find-package :cl-l10n))
+  (bind ((*package* (find-package :hu.dwim.l10n))
          (parser (make-cldr-parser))
          (*locale* nil)
          (source-xml-file (cldr-pathname-for name)))
@@ -209,7 +209,7 @@
   (check-type name string)
   (when hyphenize
     (setf name (camel-case-to-hyphened name)))
-  (let* ((ldml-package (find-package '#:cl-l10n.ldml))
+  (let* ((ldml-package (find-package '#:hu.dwim.l10n/ldml))
          (result (intern (string-upcase name) ldml-package)))
     (export result ldml-package)
     result))
@@ -297,7 +297,7 @@
            (name (and ldml-count (ldml-intern ldml-count)))
            (unit-pattern (flexml:string-content-of node)))
       (setf (getf (unit-pattern-of (currency-formatter-of *locale*)) name) unit-pattern)))
-  
+
   (:method ((parent ldml:languages) (node ldml:language))
     (process-langauge-list-like-ldml-node node 'languages-of))
 
@@ -429,5 +429,3 @@
           (setf vector (make-array max-count :initial-element nil))
           (funcall writer vector calendar))
         (setf (aref vector index) (flexml:string-content-of node))))))
-
-

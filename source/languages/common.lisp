@@ -1,7 +1,7 @@
 ;;; -*- Mode: LISP; Syntax: ANSI-Common-Lisp; Base: 10; encoding: utf-8 -*-
 ;; See the file LICENCE for licence information.
 
-(in-package #:cl-l10n)
+(in-package #:hu.dwim.l10n)
 
 (defparameter *consonants* (iter (with result = (make-hash-table :test #'eq))
                                  (for char in '(#\b #\c #\d #\f #\g #\h #\j #\k #\l #\m #\n #\p #\q #\r #\s #\t #\v #\w #\x #\z #\y))
@@ -122,4 +122,3 @@
            (inline))
   (unless (zerop (length str))
     (vowelp (elt str 0))))
-

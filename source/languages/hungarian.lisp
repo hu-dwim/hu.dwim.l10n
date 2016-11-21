@@ -1,12 +1,10 @@
 ;;; -*- Mode: LISP; Syntax: ANSI-Common-Lisp; Base: 10; encoding: utf-8 -*-
 ;; See the file LICENCE for licence information.
-(in-package #:cl-l10n)
+(in-package #:hu.dwim.l10n)
 
 (defparameter *hungarian-plural-overrides*
   (read-key->value-text-file-into-hashtable
-   (project-relative-pathname (make-pathname :directory '(:relative "src" "languages")
-                                             :name "hungarian-plural-overrides"
-                                             :type "text"))))
+   (project-relative-pathname "source/languages/hungarian-plural-overrides.text")))
 
 (defun hungarian-plural-of (word &optional (uppercase nil uppercase-provided-p))
   "Returns the hungarian plural of the given word."

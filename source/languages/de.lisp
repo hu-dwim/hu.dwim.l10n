@@ -1,13 +1,11 @@
 ;;; -*- Mode: LISP; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;; See the file LICENCE for licence information.
 
-(in-package #:cl-l10n)
+(in-package #:hu.dwim.l10n)
 
 (defparameter *de-plural-overrides*
   (read-key->value-text-file-into-hashtable
-   (project-relative-pathname (make-pathname :directory '(:relative "src" "languages")
-                                             :name "de-plural-overrides"
-                                             :type "text"))))
+   (project-relative-pathname "source/languages/de-plural-overrides.text")))
 
 (defun de-plural-of (word &optional (uppercase nil))
   "Returns the German plural of the given word."

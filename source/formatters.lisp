@@ -1,6 +1,6 @@
 ;; -*- Mode: LISP; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;; See the file LICENCE for licence information.
-(in-package :cl-l10n)
+(in-package :hu.dwim.l10n)
 
 (declaim (inline keyword-to-ldml))
 (defun keyword-to-ldml (symbol)
@@ -117,7 +117,7 @@
           (format-time/gregorian-calendar stream timestamp :verbosity verbosity)))))
 
 (defun format-number/currency (stream number currency-code &key (verbosity 'ldml:medium) pattern)
-  "Format currency. number is the amount and currency-code is the currency code form the cl-l10n.ldml package."
+  "Format currency. number is the amount and currency-code is the currency code form the hu.dwim.l10n/ldml package."
   (setf verbosity (or (keyword-to-ldml verbosity) verbosity))
   (etypecase pattern
     (compiled-pattern
@@ -190,11 +190,11 @@ locale (format-number/percent nil 0.5) returns the string \"50%\""
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Customized format directives
 
-(define-constant +directive-replacements+ '((#\N . "/cl-l10n:%format-number.decimal/")
-                                            (#\Y . "/cl-l10n:%format-number.percent/")
-                                            (#\L . "/cl-l10n:%format-date/")
-                                            (#\M . "/cl-l10n:%format-time/")
-                                            (#\U . "/cl-l10n:%format-timestamp/")
+(define-constant +directive-replacements+ '((#\N . "/hu.dwim.l10n:%format-number.decimal/")
+                                            (#\Y . "/hu.dwim.l10n:%format-number.percent/")
+                                            (#\L . "/hu.dwim.l10n:%format-date/")
+                                            (#\M . "/hu.dwim.l10n:%format-time/")
+                                            (#\U . "/hu.dwim.l10n:%format-timestamp/")
                                             ;; currency support is pretty hopeless here because it needs the currency name as an argument,
                                             ;; but the format syntax only allows numeric or character arguments...
                                             )
@@ -228,14 +228,14 @@ See appropriate format functions for details."
          format-arguments))
 
 (defun shadow-format (&optional (package *package*))
-  "Shadowing import the CL-L10N::FORMAT and CL-L10N::FORMATTER symbols into PACKAGE."
-  (shadowing-import '(cl-l10n::format cl-l10n::formatter) package))
+  "Shadowing import the HU.DWIM.L10N::FORMAT and HU.DWIM.L10N::FORMATTER symbols into PACKAGE."
+  (shadowing-import '(hu.dwim.l10n::format hu.dwim.l10n::formatter) package))
 
 (defun %format-number.decimal (stream number colon-modifier? at-modifier?)
   "Format function for localized numbers appropriate for using with the ~// format directive.
 
 Example:
-(format t \"~/cl-l10n:%format-number.decimal/\" 1002932)
+(format t \"~/hu.dwim.l10n:%format-number.decimal/\" 1002932)
 prints 1,002,932"
   (bind ((print-decimal-point? (not colon-modifier?))
          (print-thousand-separator? (not at-modifier?)))

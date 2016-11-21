@@ -1,6 +1,6 @@
 ;;; -*- Mode: LISP; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;; See the file LICENCE for licence information.
-(in-package :cl-l10n)
+(in-package :hu.dwim.l10n)
 
 (deftype locale-designator ()
   `(or locale string symbol))
@@ -59,7 +59,7 @@
 (define-condition locale-not-found-error (error)
   ((locale-name :initarg :locale-name :accessor locale-name-of))
   (:report (lambda (condition stream)
-             (cl:format stream "Could not find locale definition for ~S among the CLDR files. (Hint: did you run 'cl-l10n/bin/update-cldr.sh' to download the CLDR files?)"
+             (cl:format stream "Could not find locale definition for ~S among the CLDR files. (Hint: did you run 'hu.dwim.l10n/bin/update-cldr.sh' to download the CLDR files?)"
                         (locale-name-of condition)))))
 
 (defun locale-not-found-error (locale-name)
@@ -99,7 +99,7 @@ Othterwise the value of OTHERWISE is returned.
 (defun load-resource (name)
   (let ((resource-file (project-relative-pathname
                         (make-pathname :directory
-                                       '(:relative "src" "resources")
+                                       '(:relative "source" "resources")
                                        :name name
                                        :type "lisp"))))
     (awhen (probe-file resource-file)

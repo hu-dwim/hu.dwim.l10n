@@ -1,4 +1,4 @@
-(in-package :cl-l10n.lang)
+(in-package :hu.dwim.l10n/lang)
 
 (defresources hu
   (yes "igen")

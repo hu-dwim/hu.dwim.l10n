@@ -1,7 +1,7 @@
 ;;; -*- Mode: LISP; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;; See the file LICENCE for licence information.
 
-(in-package :cl-l10n/test)
+(in-package :hu.dwim.l10n/test)
 
 (defmacro def-resource-test (name (operator &rest locales) &body body)
   `(deftest ,name ()
@@ -19,13 +19,13 @@
 ;;; Hungarian
 ;;;
 (def-resource-test test/resources/hu/indefinite-article
-    (cl-l10n.lang:with-indefinite-article "hu" "hu_HU")
+    (hu.dwim.l10n/lang:with-indefinite-article "hu" "hu_HU")
   ("alma"   "egy alma")
   ("barack" "egy barack")
   (("kutya" :capitalize-first-letter t) "Egy kutya"))
 
 (def-resource-test test/resources/hu/definite-article
-    (cl-l10n.lang:with-definite-article "hu" "hu_HU")
+    (hu.dwim.l10n/lang:with-definite-article "hu" "hu_HU")
   ("alma"    "az alma")
   ("állat"   "az állat")
   ("barack"  "a barack")
@@ -33,7 +33,7 @@
   (("kutya" :capitalize-first-letter t) "A kutya"))
 
 (def-resource-test test/resources/hu/month-names
-    (cl-l10n.lang:month "hu" "hu_HU")
+    (hu.dwim.l10n/lang:month "hu" "hu_HU")
   (0          "január")
   (january    "január")
   (1          "február")
@@ -43,7 +43,7 @@
   ((11 :capitalize-first-letter t) "December"))
 
 (def-resource-test test/resources/hu/day-names
-    (cl-l10n.lang:day "hu" "hu_HU")
+    (hu.dwim.l10n/lang:day "hu" "hu_HU")
   (0          "vasárnap")
   (1          "hétfő")
   (monday     "hétfő")
@@ -54,7 +54,7 @@
 ;;; English
 ;;;
 (def-resource-test test/resources/en/indefinite-article
-    (cl-l10n.lang:with-indefinite-article "en" "en_GB" "en_US" "en_US_POSIX")
+    (hu.dwim.l10n/lang:with-indefinite-article "en" "en_GB" "en_US" "en_US_POSIX")
   ("table"    "a table")
   ("elephant" "an elephant")
   ("car"      "a car")
@@ -62,7 +62,7 @@
   (("element" :capitalize-first-letter t) "An element"))
 
 (def-resource-test test/resources/en/definite-article
-    (cl-l10n.lang:with-definite-article "en" "en_GB" "en_US" "en_US_POSIX")
+    (hu.dwim.l10n/lang:with-definite-article "en" "en_GB" "en_US" "en_US_POSIX")
   ("table"    "the table")
   ("elephant" "the elephant")
   ("car"      "the car")
@@ -70,7 +70,7 @@
   (("element" :capitalize-first-letter t) "The element"))
 
 (def-resource-test test/resources/en/month-names
-    (cl-l10n.lang:month "en" "en_GB" "en_US" "en_US_POSIX")
+    (hu.dwim.l10n/lang:month "en" "en_GB" "en_US" "en_US_POSIX")
   (0   "January")
   (1   "February")
   (2   "March")

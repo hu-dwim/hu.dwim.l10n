@@ -1,16 +1,15 @@
 ;;; -*- Mode: LISP; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;; See the file LICENCE for licence information.
 
-(defsystem cl-l10n
-  :name "CL-L10N"
+(defsystem hu.dwim.l10n
   :author "Sean Ross <sross@common-lisp.net>"
-  :maintainer "Sean Ross <sross@common-lisp.net>"
+  :maintainer "Attila Lendvai <attila@lendvai.name>"
   :version "0.4"
-  :description "Portable CL Locale Support"
-  :long-description "Portable CL Package to support localization"
+  :description "Localization support"
+  :long-description "Portable CL localization support, based on the http://cldr.org database"
   :licence "MIT"
   :components ((:file "flexml")
-               (:module :src
+               (:module :source
                         :components ((:file "package")
                                      (:file "variables" :depends-on ("package"))
                                      (:file "utils" :depends-on ("package" "variables"))
@@ -43,18 +42,18 @@
                :closer-mop
                )
   :perform (test-op :after (o c)
-             (asdf:load-system :cl-l10n/test)
-             (in-package :cl-l10n/test)
+             (asdf:load-system :hu.dwim.l10n/test)
+             (in-package :hu.dwim.l10n/test)
              (pushnew :debug *features*)
              (declaim (optimize (debug 3)))
              (warn "Made the following sideffects:
 - issued a (declaim (optimize (debug 3)))
 - changed *package* for C-cC-c/REPL convenience
 - (pushnew :debug *features*)")
-             (eval (read-from-string "(hu.dwim.stefil:funcall-test-with-feedback-message 'cl-l10n/test::test)"))))
+             (eval (read-from-string "(hu.dwim.stefil:funcall-test-with-feedback-message 'hu.dwim.l10n/test::test)"))))
 
-(defsystem :cl-l10n/test
-  :depends-on (:cl-l10n
+(defsystem :hu.dwim.l10n/test
+  :depends-on (:hu.dwim.l10n
                :hu.dwim.stefil
                :parse-number
                )

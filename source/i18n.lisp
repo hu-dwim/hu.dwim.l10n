@@ -1,6 +1,6 @@
 ;;; -*- Mode: LISP; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;; See the file LICENCE for licence information.
-(in-package :cl-l10n)
+(in-package :hu.dwim.l10n)
 
 (declaim (inline resource-key))
 
@@ -214,13 +214,13 @@ Be careful when using in different situations, because it modifies *readtable*."
   (or (integerp name)
       (and (symbolp name)
            (find-symbol (symbol-name name)
-                        #.(find-package :cl-l10n.ldml))
+                        #.(find-package :hu.dwim.l10n/ldml))
            t)))
 
 (defun ensure-ldml-symbol (name)
   (if (integerp name)
       name
-      (intern (string-upcase (string name)) :cl-l10n.ldml)))
+      (intern (string-upcase (string name)) :hu.dwim.l10n/ldml)))
 
 (defmacro defun-with-capitalizer (name args &body body)
   (unless (member '&key args)
@@ -235,54 +235,54 @@ Be careful when using in different situations, because it modifies *readtable*."
                    str)
                foundp))))
 
-(defun-with-capitalizer cl-l10n.lang:localize-currency-symbol (name)
+(defun-with-capitalizer hu.dwim.l10n/lang:localize-currency-symbol (name)
   (assert (ldml-symbol-p name))
   (do-current-locales-for-resource (name locale)
     (awhen (gethash name (currencies-of locale))
       (awhen (symbol-of it)
         (return (values it t))))))
 
-(defun-with-capitalizer cl-l10n.lang:localize-currency-name (name)
+(defun-with-capitalizer hu.dwim.l10n/lang:localize-currency-name (name)
   (assert (ldml-symbol-p name))
   (do-current-locales-for-resource (name locale)
     (awhen (gethash name (currencies-of locale))
       (awhen (long-name-of it)
         (return (values it t))))))
 
-(defun-with-capitalizer cl-l10n.lang:localize-language-name (name)
+(defun-with-capitalizer hu.dwim.l10n/lang:localize-language-name (name)
   (assert (ldml-symbol-p name))
   (do-current-locales-for-resource (name locale)
     (awhen (gethash name (languages-of locale))
       (return (values it t)))))
 
-(defun-with-capitalizer cl-l10n.lang:localize-script-name (name)
+(defun-with-capitalizer hu.dwim.l10n/lang:localize-script-name (name)
   (assert (ldml-symbol-p name))
   (do-current-locales-for-resource (name locale)
     (awhen (gethash name (scripts-of locale))
       (return (values it t)))))
 
-(defun-with-capitalizer cl-l10n.lang:localize-territory-name (name)
+(defun-with-capitalizer hu.dwim.l10n/lang:localize-territory-name (name)
   (assert (ldml-symbol-p name))
   (do-current-locales-for-resource (name locale)
     (awhen (gethash name (territories-of locale))
       (return (values it t)))))
 
-(defun-with-capitalizer cl-l10n.lang:localize-variant-name (name)
+(defun-with-capitalizer hu.dwim.l10n/lang:localize-variant-name (name)
   (assert (ldml-symbol-p name))
   (do-current-locales-for-resource (name locale)
     (awhen (gethash name (variants-of locale))
       (return (values it t)))))
 
-(defun-with-capitalizer cl-l10n.lang:localize-month-name (name &key abbreviated)
+(defun-with-capitalizer hu.dwim.l10n/lang:localize-month-name (name &key abbreviated)
   (bind ((index name))
     (unless (integerp name)
-      (setf index (position name '(cl-l10n.ldml:january cl-l10n.ldml:february cl-l10n.ldml:marc
-                                   cl-l10n.ldml:april   cl-l10n.ldml:may      cl-l10n.ldml:june
-                                   cl-l10n.ldml:july    cl-l10n.ldml:august   cl-l10n.ldml:september
-                                   cl-l10n.ldml:october cl-l10n.ldml:november cl-l10n.ldml:december))))
+      (setf index (position name '(hu.dwim.l10n/ldml:january hu.dwim.l10n/ldml:february hu.dwim.l10n/ldml:marc
+                                   hu.dwim.l10n/ldml:april   hu.dwim.l10n/ldml:may      hu.dwim.l10n/ldml:june
+                                   hu.dwim.l10n/ldml:july    hu.dwim.l10n/ldml:august   hu.dwim.l10n/ldml:september
+                                   hu.dwim.l10n/ldml:october hu.dwim.l10n/ldml:november hu.dwim.l10n/ldml:december))))
     (unless (and index
                  (<= 0 index 11))
-      (error "~S is not a valid month name, it should be either an integer between 0 and 11 or a symbol like 'CL-L10N.LDML:JANUARY" name))
+      (error "~S is not a valid month name, it should be either an integer between 0 and 11 or a symbol like 'HU.DWIM.L10N/LDML:JANUARY" name))
     (do-current-locales-for-resource ("<a month name>" locale)
       (when-bind calendar (gregorian-calendar-of locale)
         (when-bind vector (if abbreviated
@@ -291,15 +291,15 @@ Be careful when using in different situations, because it modifies *readtable*."
           (awhen (aref vector index)
             (return (values it t))))))))
 
-(defun-with-capitalizer cl-l10n.lang:localize-day-name (name &key abbreviated)
+(defun-with-capitalizer hu.dwim.l10n/lang:localize-day-name (name &key abbreviated)
   (bind ((index name))
     (unless (integerp name)
-      (setf index (position name '(cl-l10n.ldml:sunday    cl-l10n.ldml:monday   cl-l10n.ldml:tuesday
-                                   cl-l10n.ldml:wednesday cl-l10n.ldml:thursday cl-l10n.ldml:friday
-                                   cl-l10n.ldml:saturday))))
+      (setf index (position name '(hu.dwim.l10n/ldml:sunday    hu.dwim.l10n/ldml:monday   hu.dwim.l10n/ldml:tuesday
+                                   hu.dwim.l10n/ldml:wednesday hu.dwim.l10n/ldml:thursday hu.dwim.l10n/ldml:friday
+                                   hu.dwim.l10n/ldml:saturday))))
     (unless (and index
                  (<= 0 index 6))
-      (error "~S is not a valid day name, it should be either an integer between 0 and 6 (0 is Sunday) or a symbol like 'CL-L10N.LDML:SUNDAY" name))
+      (error "~S is not a valid day name, it should be either an integer between 0 and 6 (0 is Sunday) or a symbol like 'HU.DWIM.L10N/LDML:SUNDAY" name))
     (do-current-locales-for-resource ("<a day name>" locale)
       (when-bind calendar (gregorian-calendar-of locale)
         (when-bind vector (if abbreviated
@@ -308,14 +308,14 @@ Be careful when using in different situations, because it modifies *readtable*."
           (awhen (aref vector index)
             (return (values it t))))))))
 
-(defun-with-capitalizer cl-l10n.lang:localize-quarter-name (name &key abbreviated)
+(defun-with-capitalizer hu.dwim.l10n/lang:localize-quarter-name (name &key abbreviated)
   (bind ((index name))
     (unless (integerp name)
-      (setf index (position name '(cl-l10n.ldml:first-quarter cl-l10n.ldml:second-quarter
-                                   cl-l10n.ldml:third-quarter cl-l10n.ldml:fourth-quarter))))
+      (setf index (position name '(hu.dwim.l10n/ldml:first-quarter hu.dwim.l10n/ldml:second-quarter
+                                   hu.dwim.l10n/ldml:third-quarter hu.dwim.l10n/ldml:fourth-quarter))))
     (unless (and index
                  (<= 0 index 3))
-      (error "~S is not a valid quarter name, it should be either an integer between 0 and 3 or a symbol like 'CL-L10N.LDML:FIRST-QUARTER" name))
+      (error "~S is not a valid quarter name, it should be either an integer between 0 and 3 or a symbol like 'HU.DWIM.L10N/LDML:FIRST-QUARTER" name))
     (do-current-locales-for-resource ("<a quarter name>" locale)
       (when-bind calendar (gregorian-calendar-of locale)
         (when-bind vector (if abbreviated
@@ -324,7 +324,7 @@ Be careful when using in different situations, because it modifies *readtable*."
           (awhen (aref vector index)
             (return (values it t))))))))
 
-(defun-with-capitalizer cl-l10n.lang:localize-number-symbol (name)
+(defun-with-capitalizer hu.dwim.l10n/lang:localize-number-symbol (name)
   (assert (ldml-symbol-p name))
   (do-current-locales-for-resource (name locale)
     (awhen (assoc name (number-symbols-of locale) :test #'eq)
@@ -346,5 +346,5 @@ Be careful when using in different situations, because it modifies *readtable*."
     ;; TODO at parse time, coerce stuff like ldml:native-zero-digit to character
     ;; and update the pattern compilers, too!
     (if number-symbol-name
-        (cl-l10n.lang:localize-number-symbol number-symbol-name)
+        (hu.dwim.l10n/lang:localize-number-symbol number-symbol-name)
         number-symbol-char)))
