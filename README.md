@@ -1,3 +1,9 @@
+# What
+
+This is an **unfinished refactor** of [cl-l10n](https://common-lisp.net/project/cl-l10n/).
+
+What follows below is the original cl-l10n readme:
+
 README for Package CL-L10N
 Author: Sean Ross
 i18n, CLDR stuff: Levente Mészáros, Attila Lendvai
