@@ -1,7 +1,7 @@
 ;;; -*- Mode: LISP; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;; See the file LICENCE for licence information.
 
-(in-package :hu.dwim.l10n)
+(in-package :hu.dwim.cldr-compiler)
 
 ;;; see http://unicode.org/cldr/
 
@@ -9,7 +9,7 @@
 
 (defvar *parser*)
 
-(define-condition cldr-parser-warning (simple-warning)
+(define-condition cldr-parser-warning (cldr-warning)
   ((parser :initform *parser* :initarg :parser :accessor parser-of))
   (:report (lambda (c stream)
              (bind ((source-xml-file (source-xml-file-of (parser-of c))))
@@ -28,97 +28,50 @@
   (make-instance 'cldr-parser :default-package (string '#:hu.dwim.l10n/ldml)))
 
 (defun cldr-pathname-for (locale-name)
-  (merge-pathnames (concatenate 'string locale-name ".xml") *cldr-root-directory*))
+  (merge-pathnames (concatenate 'string locale-name ".xml")
+                   (project-relative-pathname "xml/common/main/")))
 
-(defun parse-cldr-file (name)
+(defun compute-locale-precedence-list (locale)
+  "Calculate the precedence list for a locale that should be searched for definitions. For example: (locale-precedence-list (locale \"en_US_POSIX\")) => (en_US_POSIX en_US en root)"
+  (let ((result (list locale-name)))
+    (flet ((try (locale-name)
+             (awhen (or (cached-locale locale-name)
+                        (parse-cldr-file locale-name))
+               (push it result))))
+      (when (variant-of locale)
+        (try (locale-name locale
+                          :ignore-variant t)))
+      (when (territory-of locale)
+        (try (locale-name locale
+                          :ignore-territory t
+                          :ignore-variant t)))
+      (when (script-of locale)
+        (try (locale-name locale
+                          :ignore-script t
+                          :ignore-territory t
+                          :ignore-variant t))))
+    (when (boundp '*root-locale*)
+      ;; this is how we deal with the situation when loading the root locale itself
+      (push *root-locale* result))
+    (nreverse result)))
+
+(defun parse-cldr-file (locale-name)
   (bind ((*package* (find-package :hu.dwim.l10n))
          (parser (make-cldr-parser))
-         (*locale* nil)
-         (source-xml-file (cldr-pathname-for name)))
+         (source-xml-file (cldr-pathname-for locale-name))
+         (*locale* nil))
     (bind ((*parser* parser))
       (setf (source-xml-file-of *parser*) source-xml-file)
       (cxml:parse source-xml-file *parser* :entity-resolver 'cldr-entity-resolver)
       (process-ldml-node nil (flexml:root-of *parser*))
-      (setf (precedence-list-of *locale*) (compute-locale-precedence-list *locale*)))
+      ;;(setf (precedence-list-of *locale*) (compute-locale-precedence-list *locale*))
+      )
     (assert *locale*)
-    (unless (boundp '*parser*) ; are we a toplevel invocation?
-      ;; we are a non-recursive invocation of PARSE-CLDR-FILE, so do
-      ;; some postprocessing. these operations must be postponed
-      ;; because they need the locale precedence list, which means
-      ;; that parsing needs to be called recursively.
-      (bind ((*parser* parser)) ; rebind it so that CLDR-PARSER-WARNING is usable inside
-        (map nil 'ensure-locale-is-initialized (precedence-list-of *locale*))))
     (values *locale* parser)))
-
-(defun ensure-locale-is-initialized (locale)
-  (unless (initialized-p locale)
-    (setf (initialized-p locale) t)
-    (bind ((*locale* (list locale)))
-      (unless (equal (language-of locale) "root")
-        (compile-date-formatters/gregorian-calendar locale)
-        (compile-time-formatters/gregorian-calendar locale))
-      (compile-number-formatters locale))))
-
-(defun compile-number-formatters (locale)
-  (compile-number-formatters/decimal locale)
-  (compile-number-formatters/percent locale)
-  (compile-number-formatters/currency locale))
-
-(defun compile-date-or-time-formatters/gregorian-calendar (locale formatter-slot-reader)
-  (bind ((gregorian-calendar (gregorian-calendar-of locale)))
-    (when gregorian-calendar
-      (bind ((verbosities '(ldml:short ldml:medium ldml:long ldml:full))
-             (patterns (iter (for verbosity :in verbosities)
-                             (for pattern = (do-current-locales locale
-                                              ;; find a pattern on the locale precedence list
-                                              (awhen (gregorian-calendar-of locale)
-                                                (awhen (getf (funcall formatter-slot-reader it) verbosity)
-                                                  (awhen (getf it :pattern)
-                                                    (return it))))))
-                             (assert pattern) ; the root locale should have it at the very least
-                             (collect pattern)))
-             (formatter-slot-writer (fdefinition `(setf ,formatter-slot-reader))))
-        (funcall formatter-slot-writer
-                 (mapcan (lambda (verbosity pattern formatter)
-                           (list verbosity (list :formatter formatter :pattern pattern)))
-                         verbosities
-                         patterns
-                         (compile-date-time-patterns/gregorian-calendar patterns))
-                 gregorian-calendar)))))
-
-(defun compile-date-formatters/gregorian-calendar (locale)
-  (compile-date-or-time-formatters/gregorian-calendar locale 'date-formatters-of))
-
-(defun compile-time-formatters/gregorian-calendar (locale)
-  (compile-date-or-time-formatters/gregorian-calendar locale 'time-formatters-of))
-
-(defmacro compile-simple-number-formatters (formatters-accessor-form pattern-compiler)
-  `(iter (for verbosity :in (mapcar #'car ,formatters-accessor-form) by #'cddr)
-         (for entry = (assoc-value ,formatters-accessor-form verbosity))
-         (setf (getf entry :formatter) (funcall ,pattern-compiler (getf entry :pattern)))
-         (setf (assoc-value ,formatters-accessor-form verbosity) entry)))
-
-(defun compile-number-formatters/decimal (locale)
-  (compile-simple-number-formatters (decimal-formatters-of locale) #'compile-number-pattern/decimal))
-
-(defun compile-number-formatters/percent (locale)
-  (compile-simple-number-formatters (percent-formatters-of locale) #'compile-number-pattern/percent))
-
-(defun compile-number-formatters/currency (locale)
-  (bind ((currency-formatter (currency-formatter-of locale)))
-    (when currency-formatter
-      (iter (for verbosity :in (mapcar #'car (formatters-of currency-formatter)))
-            (for entry = (assoc-value (formatters-of currency-formatter) verbosity))
-            (setf (getf entry :formatter) (compile-number-pattern/currency (getf entry :pattern)))
-            (setf (assoc-value (formatters-of currency-formatter) verbosity) entry)))))
-
-;; TODO get rid of this
-(defun dummy-formatter (&rest args)
-  (declare (ignore args))
-  (error "Seems like either the CLDR file parsing or the CLDR files themselves have a bug. This dummy formatter should have been replaced in the postprocessing phase."))
 
 (defun cldr-entity-resolver (public-id system-id)
   (declare (ignore public-id))
+  (check-type system-id puri:uri)
   (bind ((file (cond
                  ((puri:uri= system-id (load-time-value
                                         (puri:parse-uri "http://www.unicode.org/cldr/dtd/1.8.0/ldml.dtd")))
@@ -127,7 +80,7 @@
                                         (puri:parse-uri "http://www.unicode.org/cldr/dtd/1.8.0/cldrTest.dtd")))
                   "cldr/common/dtd/cldrTest.dtd"))))
     (when file
-      (open (cldr-relative-pathname file) :element-type '(unsigned-byte 8) :direction :input))))
+      (open (project-relative-pathname file) :element-type '(unsigned-byte 8) :direction :input))))
 
 (defmethod flexml:class-name-for-node-name ((parser cldr-parser) namespace-uri package (local-name string) qualified-name)
   (let ((class-name (find-symbol (string-upcase (camel-case-to-hyphened local-name)) :ldml)))
@@ -155,6 +108,7 @@
   (define
    ldml:ldml
    ldml:identity
+   ldml:version
    ldml:language
    ldml:languages
    ldml:script
@@ -224,58 +178,67 @@
     )
 
   (:method ((parent ldml:ldml) (node ldml:identity))
-    (flet ((lookup (type)
-             (let ((value (slot-value-unless-nil
-                           (flexml:first-child-with-type node type)
-                           'ldml::type)))
+    (flet ((lookup (type &optional (attribute-name 'ldml::type))
+             (let* ((child-node (flexml:first-child-with-type node type))
+                    (value (when child-node
+                             (slot-value child-node attribute-name))))
                (assert (or (null value)
                            (stringp value)))
-               value)))
+               value))
+           (drop-wrapper-string (value prefix postfix)
+             (when (and (starts-with-subseq prefix value)
+                        (ends-with-subseq postfix value))
+               (subseq value
+                       (length prefix)
+                       (- (length value)
+                          (length postfix))))))
       (let ((language  (lookup 'ldml:language))
             (script    (lookup 'ldml:script))
             (territory (lookup 'ldml:territory))
             (variant   (lookup 'ldml:variant))
-            (version (slot-value (flexml:first-child-with-local-name node "version")
-                                 'ldml::number))
-            (date (slot-value (flexml:first-child-with-local-name node "generation")
-                              'ldml::date)))
+            (version   (lookup 'ldml:version 'ldml:number)))
         (assert language)
-        (when (and (starts-with-subseq "$Revision: " version)
-                   (ends-with-subseq   " $" version))
-          (setf version (subseq version 11 (- (length version) 2))))
-        (when (and (starts-with-subseq "$Date: " date)
-                   (ends-with-subseq   " $" date))
-          (setf date (subseq date 7 (- (length date) 2))))
+        (setf version (drop-wrapper-string version "$Revision: " " $"))
         (setf *locale*
               (make-instance 'locale
                              :language language
                              :script script
                              :territory territory
                              :variant variant
-                             :version-info (concatenate 'string version " (" date ")"))))))
+                             :version-info version)))))
 
   (:method ((parent ldml:numbers) (node ldml:symbols))
+    ;; FIXME
+    #+nil
     (iter (for symbol-node :in-sequence (flexml:children-of node))
           (for value = (flexml:string-content-of symbol-node))
           (for name = (ldml-intern (flexml:local-name-of symbol-node) :hyphenize t))
           (push (cons name value) (number-symbols-of *locale*))))
 
   (:method ((parent ldml:currencies) (node ldml:currency))
-    (bind ((currency-code (slot-value node 'ldml::type)))
-      (assert (every #'upper-case-p currency-code))
-      (setf currency-code (ldml-intern currency-code))
-      (when-bind symbol-node (flexml:first-child-with-local-name node "symbol")
-        (bind ((symbol (flexml:string-content-of symbol-node)))
-          (setf (symbol-of (ensure-currency *locale* currency-code)) symbol)))
-      (when-bind display-name-node (flexml:first-child-with-local-name node "displayName")
-        (bind ((long-name (flexml:string-content-of display-name-node)))
-          (setf (long-name-of (ensure-currency *locale* currency-code)) long-name)))))
+    (flet ((ensure-currency (locale code)
+             (bind ((currency (gethash code (currencies-of locale))))
+               (unless currency
+                 (setf currency (make-instance 'currency :code code))
+                 (setf (gethash code (currencies-of locale)) currency))
+               currency)))
+      (bind ((currency-code (slot-value node 'ldml::type)))
+        (assert (every #'upper-case-p currency-code))
+        (setf currency-code (ldml-intern currency-code))
+        (when-bind symbol-node (flexml:first-child-with-local-name node "symbol")
+          (bind ((symbol (flexml:string-content-of symbol-node)))
+            (setf (symbol-of (ensure-currency *locale* currency-code)) symbol)))
+        (when-bind display-name-node (flexml:first-child-with-local-name node "displayName")
+          (bind ((long-name (flexml:string-content-of display-name-node)))
+            (setf (long-name-of (ensure-currency *locale* currency-code)) long-name))))))
 
   (:method ((parent ldml:numbers) (node ldml:currency-formats))
     (setf (currency-formatter-of *locale*) (make-instance 'currency-formatter))
     (call-next-method))
 
   (:method ((parent ldml:currency-spacing) node)
+    ;; FIXME
+    #+nil
     (bind ((currency-slot-reader (symbolicate (string-upcase (camel-case-to-hyphened (flexml:local-name-of node))) '#:-of))
            (slot-value (funcall currency-slot-reader (currency-formatter-of *locale*))))
       (iter (for child :in-sequence (flexml:children-of node))
@@ -285,7 +248,8 @@
   (:method ((parent ldml:currency-formats) (node ldml:currency-format-length))
     (bind ((ldml-type (slot-value node 'ldml::type))
            (name (and ldml-type (ldml-intern ldml-type)))
-           (inbetween-node (flexml:the-only-child node)))
+           ;; FIXME flexml:first-child
+           (inbetween-node (flexml:first-child node)))
       (unless (length= 1 (flexml:children-of inbetween-node))
         (cldr-parser-warning "LDML node ~A has multiple children, using the first one" inbetween-node))
       (bind ((pattern (flexml:string-content-of (flexml:first-child inbetween-node))))
@@ -317,6 +281,8 @@
           (process-ldml-gregorian-calendar-node parent node))
         (call-next-method)))
   (:method ((parent ldml:decimal-formats) (node ldml:decimal-format-length))
+    ;; FIXME
+    #+nil
     (push (process-simple-number-formatter-node node)
           (decimal-formatters-of *locale*)))
 

@@ -7,6 +7,7 @@
    :metabang-bind
    :alexandria
    :iterate
+   :anaphora
    )
   (:shadow
    cl:format
@@ -147,6 +148,8 @@
    #:script
    #:territory
    #:variant
+   #:version
+   #:number
    #:numbers
    #:symbols
    #:currencies

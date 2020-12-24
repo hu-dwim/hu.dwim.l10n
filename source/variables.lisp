@@ -15,11 +15,6 @@
 (defun project-relative-pathname (file)
   (asdf:system-relative-pathname :hu.dwim.l10n file))
 
-(defun cldr-relative-pathname (file)
-  (asdf:system-relative-pathname :cl-l10n-cldr file))
-
-(defparameter *cldr-root-directory* (cldr-relative-pathname "common/main/"))
-
 ;; TODO locking for thread safety
 (defparameter *locale-cache* (make-hash-table :test #'equal)
   "Hashtable containing all loaded locales keyed on LOCALE-NAME (eg. \"af_ZA\")")

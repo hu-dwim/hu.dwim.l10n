@@ -3,13 +3,6 @@
 
 (in-package :hu.dwim.l10n )
 
-;; Conditions
-(define-condition locale-error (simple-error)
-  ())
-
-(defun locale-error (message &rest args)
-  (error 'locale-error :format-control message :format-arguments args))
-
 ;; Classes
 (defclass locale ()
   ((language
@@ -79,6 +72,37 @@
   (print-unreadable-object (obj stream :type t :identity t)
     (princ (locale-name obj) stream)))
 
+(defun make-local-factory-form (%locale)
+  ;; MAKE-LOAD-FORM-SAVING-SLOTS cannot be used here because we need
+  ;; need a form that can be written into a .lisp file.
+  (labels
+      ((recurse (object)
+         (etypecase object
+           ((or string number symbol)
+            object)
+           (standard-object
+            (bind ((class (class-of object)))
+              `(make-instance ',(class-name class)
+                              ,@(loop
+                                  :for slot :in (closer-mop:class-slots class)
+                                  :collect (first (closer-mop:slot-definition-initargs slot))
+                                  :collect (recurse (closer-mop:slot-value-using-class class object slot))))))
+           (list
+            `(make-list ,@(mapcar #'recurse object)))
+           (hash-table
+            `(plist-hash-table ,(loop
+                                  :for (key value) :on (hash-table-plist object) :by #'cddr
+                                  :nconc (list (recurse key) (recurse value)))
+                               :test ,(hash-table-test object)))
+           (array
+            (assert (= 1 (length (array-dimensions object))))
+            (assert (not (array-has-fill-pointer-p object)))
+            (assert (not (array-displacement object)))
+            `(make-array ,(array-dimension object 0)
+                         :element-type ,(array-element-type object)
+                         :initial-contents (list ,@(map 'list #'recurse object)))))))
+    (recurse %locale)))
+
 (defclass currency ()
   ((code
     :initform (required-arg :code)
@@ -92,13 +116,6 @@
     :initform nil
     :initarg :long-name
     :accessor long-name-of)))
-
-(defun ensure-currency (locale code)
-  (bind ((currency (gethash code (currencies-of locale))))
-    (unless currency
-      (setf currency (make-instance 'currency :code code))
-      (setf (gethash code (currencies-of locale)) currency))
-    currency))
 
 (defgeneric locale-name (locale &key ignore-script ignore-territory ignore-variant)
   (:method ((locale locale) &key ignore-variant ignore-territory ignore-script)
@@ -117,28 +134,6 @@
           (awhen (variant-of locale)
             (write-char #\_)
             (write-string it)))))))
-
-(defun compute-locale-precedence-list (locale)
-  "Calculate the precedence list for a locale that should be searched for definitions. For example: (locale-precedence-list (locale \"en_US_POSIX\")) => (en_US_POSIX en_US en root)"
-  (let ((result (list locale)))
-    (flet ((try (locale-name)
-             (awhen (locale locale-name :otherwise nil)
-               (push it result))))
-      (when (variant-of locale)
-        (try (locale-name locale
-                          :ignore-variant t)))
-      (when (territory-of locale)
-        (try (locale-name locale
-                          :ignore-territory t
-                          :ignore-variant t)))
-      (when (script-of locale)
-        (try (locale-name locale
-                          :ignore-script t
-                          :ignore-territory t
-                          :ignore-variant t))))
-    (when (boundp '*root-locale*)
-      (push *root-locale* result))
-    (nreverse result)))
 
 (defun clear-locale-cache ()
   (prog1

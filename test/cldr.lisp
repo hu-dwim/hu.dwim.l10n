@@ -19,11 +19,10 @@ with CLDR 1.6.1
 
 (deftest (test/cldr/run-cldr-tests :auto-call nil) ()
   ;; don't run the cldr tests by default, we are just not there yet...
-  (cl-fad:walk-directory (cldr-relative-pathname "test/")
-                         'test/cldr/run-cldr-test
-                         :directories nil
-                         :test (lambda (file)
-                                 (string= "xml" (pathname-type file)))))
+  (foreach (lambda (path)
+             (when (string= "xml" (pathname-type file))
+               (test/cldr/run-cldr-test path)))
+           (uiop:directory-files (cldr-relative-pathname "test/"))))
 
 (deftest test/cldr/number-formatter ()
   (with-locale "en"

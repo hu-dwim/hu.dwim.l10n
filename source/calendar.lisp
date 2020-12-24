@@ -94,8 +94,8 @@
                                                (awhen (aref it index)
                                                  (return it)))))))
                     (unless inherited-name
-                      (cldr-parser-warning "Locale ~A has no value at index ~A of gregorian date part name ~A"
-                                           (current-locale) index name-vector-slot-reader)
+                      (cldr-warning "Locale ~A has no value at index ~A of gregorian date part name ~A"
+                                    (current-locale) index name-vector-slot-reader)
                       (when defaults
                         (setf inherited-name (aref defaults index))))
                     (setf (aref result index) inherited-name)))))

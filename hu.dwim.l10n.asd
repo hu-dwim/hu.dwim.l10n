@@ -8,16 +8,16 @@
   :description "Localization support"
   :long-description "Portable CL localization support, based on the http://cldr.org database"
   :licence "MIT"
-  :components ((:file "flexml")
-               (:module :source
+  :components ((:module :source
                         :components ((:file "package")
-                                     (:file "variables" :depends-on ("package"))
+                                     (:file "conditions" :depends-on ("package"))
+                                     (:file "variables" :depends-on ("package" "conditions"))
                                      (:file "utils" :depends-on ("package" "variables"))
                                      (:file "pattern-compiling" :depends-on ("utils"))
-                                     (:file "cldr-parsing" :depends-on ("package" "utils" "locale" "i18n" "pattern-compiling"))
+                                     ;;(:file "cldr-parsing" :depends-on ("package" "utils" "locale" "i18n" "pattern-compiling"))
                                      (:file "locale" :depends-on ("utils" "calendar"))
                                      (:file "calendar" :depends-on ("utils"))
-                                     (:file "load-locale" :depends-on ("locale" "cldr-parsing"))
+                                     (:file "load-locale" :depends-on ("locale"))
                                      (:file "formatters" :depends-on ("load-locale"))
                                      (:file "i18n" :depends-on ("locale"))
                                      (:module :languages
@@ -28,14 +28,12 @@
                                               :depends-on ("package" "utils"))
                                      (:module :resources
                                               :components ((:file "common"))
-                                              :depends-on ("package" "utils" "load-locale")))
-                        :depends-on ("flexml")))
+                                              :depends-on ("package" "utils" "load-locale")))))
   :depends-on (:alexandria
                :cl-l10n-cldr
                :iterate
                :cl-ppcre
                :metabang-bind
-               :cl-fad
                :flexi-streams ; TODO replace with babel
                :cxml
                :local-time

@@ -29,11 +29,6 @@
       (write-char (code-char (+ #x30 digit)) stream)))
   (values))
 
-(defmacro slot-value-unless-nil (instance slot-name)
-  (once-only (instance)
-    `(when ,instance
-       (slot-value ,instance ,slot-name))))
-
 (defun read-key->value-text-file-into-hashtable (file)
   (with-open-file (file-stream file :element-type '(unsigned-byte 8))
     (let ((stream (flexi-streams:make-flexi-stream file-stream :external-format :utf-8)))
@@ -119,34 +114,6 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; some duplicates copied from various other libs to lower the number of dependencies
-
-;; from verrazano
-(defun camel-case-to-hyphened (input)
-  (if (> (length input) 0)
-      (string-downcase
-       (with-output-to-string (*standard-output*)
-         (iter (with in-uppercase? = (upper-case-p (elt input 0)))
-               (for run-length :upfrom 0)
-               (for hyphen-distance :upfrom 0)
-               (for char :in-vector input)
-               (for previous-char :previous char :initially #\ )
-               (let ((new-in-uppercase? (if (alpha-char-p char)
-                                            (upper-case-p char)
-                                            (if (alpha-char-p previous-char)
-                                                (not in-uppercase?)
-                                                in-uppercase?))))
-                 (unless (eq in-uppercase? new-in-uppercase?)
-                   ;;(break "~A ~A ~A ~A" previous-char char run-length hyphen-distance)
-                   (when (and (alphanumericp char)
-                              (alphanumericp previous-char)
-                              (or (> run-length 1)
-                                  (> hyphen-distance 1)))
-                     (write-char #\-)
-                     (setf hyphen-distance 0))
-                   (setf run-length 0)
-                   (setf in-uppercase? new-in-uppercase?)))
-               (write-char char))))
-      input))
 
 (defmacro rebinding (bindings &body body)
   "Bind each var in BINDINGS to a gensym, bind the gensym to

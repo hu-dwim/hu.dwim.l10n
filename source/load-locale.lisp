@@ -56,15 +56,6 @@
                (write-char #\_)
                (write-string it)))))))))
 
-(define-condition locale-not-found-error (error)
-  ((locale-name :initarg :locale-name :accessor locale-name-of))
-  (:report (lambda (condition stream)
-             (cl:format stream "Could not find locale definition for ~S among the CLDR files. (Hint: did you run 'hu.dwim.l10n/bin/update-cldr.sh' to download the CLDR files?)"
-                        (locale-name-of condition)))))
-
-(defun locale-not-found-error (locale-name)
-  (error 'locale-not-found-error :locale-name locale-name))
-
 (defun locale (locale-designator &key (use-cache t) (otherwise nil otherwise-p))
   "Find locale named by the specification LOCALE-DESIGNATOR. If USE-CACHE
 is non-nil forcefully reload/reparse the cldr locale else
@@ -76,6 +67,13 @@ If OTHERWISE is a function, that function is called and the result is returned.
 Othterwise the value of OTHERWISE is returned.
 "
   (declare (type locale-designator locale-designator))
+  (error "TODO")
+  #+nil
+  (emit `(defun ldml::instantiate-locale (ldml:locale-name &key (ldml:otherwise :error ldml:otherwise-provided?))
+                     (let ((ldml::factory (gethash ldml::locale-name ldml::*locale-registry*)))
+                       (assert ldml::factory)
+                       (funcall ldml::factory))))
+  #+nil
   (if (typep locale-designator 'locale)
       locale-designator
       (let ((name (canonical-locale-name-from locale-designator)))
@@ -108,7 +106,7 @@ Othterwise the value of OTHERWISE is returned.
 (defun load-resource-file (resource-file)
   (bind ((output-file (asdf:apply-output-translations resource-file)))
     (ensure-directories-exist output-file)
-    (when (or (not (cl-fad:file-exists-p output-file))
+    (when (or (not (uiop:file-exists-p output-file))
               (> (file-write-date resource-file)
                  (file-write-date output-file)))
       (compile-file resource-file :output-file output-file))
@@ -121,18 +119,17 @@ Othterwise the value of OTHERWISE is returned.
 
 (defun load-all-locales (&key (ignore-errors nil) (use-cache t))
   "Load all locales."
-  (cl-fad:walk-directory
-   *cldr-root-directory*
-   (lambda (file-name)
-     (bind ((locale-name (pathname-name file-name)))
-       (with-simple-restart (continue "Skip loading locale ~A" locale-name)
-         (handler-bind ((error (lambda (error)
-                                 (when ignore-errors
-                                   (warn "Ignoring failure while loading locale ~S" locale-name)
-                                   (invoke-restart (find-restart 'continue error))))))
-           (locale locale-name :use-cache use-cache)))))
-   :test (lambda (file-name)
-           (equal (pathname-type file-name) "xml"))))
+  (foreach (lambda (file-name)
+             (bind ((locale-name (pathname-name file-name)))
+               (with-simple-restart (continue "Skip loading locale ~A" locale-name)
+                 (handler-bind ((error (lambda (error)
+                                         (when ignore-errors
+                                           (warn "Ignoring failure while loading locale ~S" locale-name)
+                                           (invoke-restart (find-restart 'continue error))))))
+                   (when (and (uiop:file-pathname-p path)
+                              (equal (pathname-type path) "xml"))
+                     (locale locale-name :use-cache use-cache))))))
+           (uiop:directory-files *cldr-root-directory*)))
 
 (declaim (inline current-locale (setf current-locale)))
 
@@ -169,6 +166,7 @@ match is found."
 (defun load-root-locale ()
   (setf *root-locale* (locale "root")))
 
+#+nil ;; TODO
 (eval-when (:load-toplevel :execute)
   (load-root-locale)
   (load-default-locale))
